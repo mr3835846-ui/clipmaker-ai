@@ -1,0 +1,100 @@
+
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ClipMaker AI</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#f7f7fb;color:#171426;font-family:Arial,sans-serif}
+header{background:white;padding:22px;text-align:center;color:#5633a5;font-size:27px;font-weight:bold}
+main{max-width:650px;margin:65px auto;padding:20px}
+.panel{background:white;border-radius:22px;padding:30px;box-shadow:0 8px 30px #0000000d}
+h1{text-align:center;font-size:29px}
+.sub{text-align:center;color:#777;margin-bottom:30px}
+input,select{width:100%;padding:17px;border:0;background:#f0eff5;border-radius:12px;margin:10px 0 20px;font-size:16px}
+label{font-weight:bold}
+button{width:100%;padding:17px;background:#6841b7;color:white;border:0;border-radius:12px;font-size:18px;font-weight:bold}
+#status{text-align:center;color:#6841b7;margin:20px 0}
+.card{padding:15px;border:1px solid #eee;border-radius:15px;margin:15px 0}
+video{width:100%;border-radius:12px}
+a{color:#603ab0;font-weight:bold}
+</style>
+</head>
+<body>
+<header>✳ ClipMaker AI</header>
+<main>
+<div class="panel">
+<h1>Upload a video</h1>
+<p class="sub">লম্বা ভিডিও থেকে Shorts তৈরি করুন</p>
+<form id="form">
+<label>YouTube Video Link</label>
+<input id="url" type="url" placeholder="YouTube link paste করুন" required>
+<label>কতটি ক্লিপ চান?</label>
+<select id="count">
+<option value="1">১টি ক্লিপ</option>
+<option value="3" selected>৩টি ক্লিপ</option>
+<option value="5">৫টি ক্লিপ</option>
+</select>
+<label>প্রতি ক্লিপের দৈর্ঘ্য</label>
+<select id="duration">
+<option value="20">২০ সেকেন্ড</option>
+<option value="30" selected>৩০ সেকেন্ড</option>
+<option value="45">৪৫ সেকেন্ড</option>
+<option value="60">৬০ সেকেন্ড</option>
+</select>
+<button id="submit">✨ Get Clips</button>
+</form>
+<div id="status"></div>
+<div id="results"></div>
+</div>
+</main>
+<script>
+const form=document.getElementById('form');
+form.addEventListener('submit',async e=>{
+e.preventDefault();
+const btn=document.getElementById('submit');
+const status=document.getElementById('status');
+const results=document.getElementById('results');
+btn.disabled=true;
+status.textContent='ভিডিও প্রসেস হচ্ছে, অপেক্ষা করুন...';
+results.innerHTML='';
+try{
+const response=await fetch('/api/clips',{
+method:'POST',
+headers:{'Content-Type':'application/json'},
+body:JSON.stringify({
+url:document.getElementById('url').value,
+count:Number(document.getElementById('count').value),
+duration:Number(document.getElementById('duration').value)
+})
+});
+const data=await response.json();
+if(!response.ok)throw new Error(data.detail||'সমস্যা হয়েছে');
+status.textContent='আপনার ক্লিপ তৈরি হয়েছে!';
+data.clips.forEach(c=>{
+const div=document.createElement('div');
+div.className='card';
+const title=document.createElement('h3');
+title.textContent=c.name;
+const video=document.createElement('video');
+video.controls=true;
+video.src=c.url;
+const link=document.createElement('a');
+link.href=c.url;
+link.download='';
+link.textContent='⬇ Download Video';
+div.append(title,video,document.createElement('br'),link);
+results.appendChild(div);
+});
+}catch(err){
+status.textContent='Error: '+err.message;
+}
+finally{
+btn.disabled=false;
+}
+});
+</script>
+</body>
+</html>
